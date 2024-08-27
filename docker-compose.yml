@@ -1,28 +1,50 @@
 services:
   proxy:
+    container_name: proxy
     image: jwilder/nginx-proxy
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-    - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs:ro
+      - vhostd:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy  
+
+  letsencrypt:
+    container_name: letsencrypt
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: always
+    environment:
+      - NGINX_PROXY_CONTAINER=proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs:rw
+      - vhostd:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
 
   web:
+    container_name: web
     image: nginx:latest
     restart: always
     expose:
       - "80"
     volumes:
-      - ./html:/usr/share/nginx/html:ro
+      - ./www:/usr/share/nginx/html:ro
     environment:
-      - VIRTUAL_HOST=home.enunpimpam.com, www.home.enunpimpam.com
+      - VIRTUAL_HOST=home.enunpimpam.com,www.home.enunpimpam.com
+      - LETSENCRYPT_HOST=home.enunpimpam.com,www.home.enunpimpam.com
+      - LETSENCRYPT_EMAIL=nacho@enunpimpam.com
+    depends_on:
+      - proxy
+      - letsencrypt
+volumes: 
+  vhostd:
+  acme:
+  html:
 
-  web2:
-    image: nginx:latest
-    restart: always
-    expose:
-      - "80"
-    volumes:
-      - ./eric:/usr/share/nginx/html:ro
-    environment:
-      - VIRTUAL_HOST=eric.enunpimpam.com, www.eric.enunpimpam.com
