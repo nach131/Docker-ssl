@@ -37,8 +37,8 @@ services:
     volumes:
       - ./www:/usr/share/nginx/html:ro
     environment:
-      - VIRTUAL_HOST=home.enunpimpam.com,www.home.enunpimpam.com
-      - LETSENCRYPT_HOST=home.enunpimpam.com,www.home.enunpimpam.com
+      - VIRTUAL_HOST=${DOMAIN},www.${DOMAIN}
+      - LETSENCRYPT_HOST=${DOMAIN},www.${DOMAIN}
       - LETSENCRYPT_EMAIL=nacho@enunpimpam.com
     depends_on:
       - proxy

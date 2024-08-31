@@ -1,2 +1,4 @@
 certs/*
+certs_home/*
 !certs/gitignore
+.env
